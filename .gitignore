@@ -1,0 +1,5 @@
+user/.env
+server.cert
+server.key
+gateway/node_modules/
+user/node_modules/
