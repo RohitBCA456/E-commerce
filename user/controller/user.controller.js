@@ -1,4 +1,5 @@
 import { User } from "../model/user.model.js";
+import { publishToQueue } from "../service/RabbitMQ.js";
 import { asyncHandler } from "../utility/asyncHandler.js";
 
 const registerUser = asyncHandler(async (req, res) => {
@@ -85,4 +86,32 @@ const logoutUser = asyncHandler(async (req, res) => {
     .json({ message: "user logged out successfully." });
 });
 
-export { registerUser, loginUser, logoutUser };
+const changePassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  if ([oldPassword, newPassword].some((field) => field.trim() === "")) {
+    return res.status(400).json({ message: "Invalid credentials" });
+  }
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    return res.status(404).json({ message: "No user found" });
+  }
+  const isPasswordValid = await user.isPasswordCorrect(oldPassword);
+  if (!isPasswordValid) {
+    return res.status(400).json({ message: "Invalid password" });
+  }
+  user.password = newPassword;
+  await user.save();
+  return res.status(200).json({ message: "Password changed successfully." });
+});
+
+const addToCart = asyncHandler(async (req, res) => {
+  const cartData = req.body.CartData;
+  const user = User.findById(req.user._id);
+  if (!user) {
+    return res.status(404).json({ message: "No user found" });
+  }
+  publishToQueue("addToCart", JSON.stringify(cartData));
+  return res.status(200).json({ message: "Added to cart successfully." });
+});
+
+export { registerUser, loginUser, logoutUser, addToCart, changePassword };
