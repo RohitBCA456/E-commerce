@@ -1,15 +1,17 @@
 import { subscribeToQueue } from "../../user/service/RabbitMQ.js";
 import { Cart } from "../model/cart.model.js";
+import { asyncHandler } from "../utility/asyncHandler.js";
 
-const addCartToDatabase = async () => {
+const addCartToDatabase = asyncHandler(async (req, res) => {
   try {
+    let token;
     subscribeToQueue("addToCart", async (data) => {
       try {
         const cartDataFromUser = JSON.parse(data);
 
         if (
-          !cartDataFromUser || 
-          !cartDataFromUser.userId || 
+          !cartDataFromUser ||
+          !cartDataFromUser.userId ||
           !cartDataFromUser.cartData
         ) {
           throw new Error("Invalid message structure received from queue.");
@@ -30,9 +32,18 @@ const addCartToDatabase = async () => {
             user_id: userId,
             cartData: cartData,
           });
-
           await newCart.save();
+          token = await newCart.generateToken();
+          newCart.token = token;
+          const options = {
+            httpOnly: true,
+            secure: true,
+          };
+          newCart.save({ validateBeforeSave: false });
           console.log("Cart data saved to database successfully for new user.");
+          return res.status(200).cookie("token", token, options).json({
+            message: "Cart data updated successfully for existing user.",
+          });
         }
       } catch (error) {
         console.error("Error processing message from queue:", error.message);
@@ -41,6 +52,9 @@ const addCartToDatabase = async () => {
   } catch (error) {
     console.error("Error saving cart data to database:", error.message);
   }
-};
+});
 
-export { addCartToDatabase };
+const deleteFromCart = asyncHandler(async (req, res) => {
+});
+
+export { addCartToDatabase, deleteFromCart };
