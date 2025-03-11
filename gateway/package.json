@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-http-proxy": "^2.1.1",
     "nodemon": "^3.1.9"
@@ -15,5 +16,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "devDependencies": {},
   "description": ""
 }

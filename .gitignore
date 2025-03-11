@@ -4,3 +4,4 @@ server.key
 gateway/node_modules/
 user/node_modules/
 cart/.env
+gateway/.env

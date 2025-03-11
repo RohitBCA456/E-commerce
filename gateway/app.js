@@ -1,9 +1,11 @@
 import express from "express";
 import proxy from "express-http-proxy";
+import dotenv from "dotenv";
+dotenv.config();
 const app = express();
 
-app.use("/user", proxy("http://localhost:4001"));
-app.use("/cart", proxy("http://localhost:4002"));
-app.listen(4000, () => {
-  console.log("Gateway server running on port : 4000");
+app.use("/user", proxy(process.env.USER_ROUTE));
+app.use("/cart", proxy(process.env.CART_ROUTE));
+app.listen(process.env.PORT, () => {
+  console.log("Gateway server running on port : ",process.env.PORT);
 });
