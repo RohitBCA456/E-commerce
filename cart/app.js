@@ -1,0 +1,11 @@
+import express from "express";
+import dotenv from "dotenv";
+import cartRouter from "./router/cart.router.js";
+import { connect } from "./service/RabbitMQ.js";
+dotenv.config({path: "./.env"});
+const app = express();
+connect();
+app.use(express.json());
+app.use(express.urlencoded({extended: true}));
+app.use("/",cartRouter);
+export { app };
