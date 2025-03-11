@@ -6,9 +6,10 @@ const addCartToDatabase = async () => {
     subscribeToQueue("addToCart", async (data) => {
       try {
         const cartDataFromUser = JSON.parse(data);
+
         if (
-          cartDataFromUser ||
-          !cartDataFromUser.userId ||
+          !cartDataFromUser || 
+          !cartDataFromUser.userId || 
           !cartDataFromUser.cartData
         ) {
           throw new Error("Invalid message structure received from queue.");
@@ -18,13 +19,21 @@ const addCartToDatabase = async () => {
 
         console.log("Received cart data:", cartDataFromUser);
 
-        const newCart = new Cart({
-          user_id: userId,
-          cartData: cartData,
-        });
+        let userCart = await Cart.findOne({ user_id: userId });
 
-        await newCart.save();
-        console.log("Cart data saved to database successfully.");
+        if (userCart) {
+          userCart.cartData.push(cartData);
+          await userCart.save();
+          console.log("Cart data updated successfully for existing user.");
+        } else {
+          const newCart = new Cart({
+            user_id: userId,
+            cartData: cartData,
+          });
+
+          await newCart.save();
+          console.log("Cart data saved to database successfully for new user.");
+        }
       } catch (error) {
         console.error("Error processing message from queue:", error.message);
       }
