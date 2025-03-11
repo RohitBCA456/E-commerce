@@ -55,6 +55,28 @@ const addCartToDatabase = asyncHandler(async (req, res) => {
 });
 
 const deleteFromCart = asyncHandler(async (req, res) => {
+  const item_Id = req.params.id;
+  const userCart = await Cart.findById(req.item._id);
+
+  if (!userCart) {
+    return res.status(404).json({ message: "Cart not found." });
+  }
+
+  const itemExists = userCart.cartData.some(
+    (item) => item._id.toString() === item_Id
+  );
+
+  if (!itemExists) {
+    return res.status(404).json({ message: "Item not found in the cart." });
+  }
+
+  userCart.cartData = userCart.cartData.filter(
+    (item) => item._id.toString() !== item_Id
+  );
+
+  await userCart.save();
+
+  res.status(200).json({ message: "Item deleted successfully from the cart." });
 });
 
 export { addCartToDatabase, deleteFromCart };

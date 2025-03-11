@@ -15,7 +15,7 @@ const authMiddleware = asyncHandler(async (req, res, next) => {
       .status(404)
       .json({ message: "item not found with the particular token." });
   }
-  req.item = item;
+  req.item = cart;
   next();
 });
 
