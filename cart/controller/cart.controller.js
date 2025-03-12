@@ -1,11 +1,12 @@
 import { subscribeToQueue } from "../../user/service/RabbitMQ.js";
 import { Cart } from "../model/cart.model.js";
 import { asyncHandler } from "../utility/asyncHandler.js";
+import mongoose from "mongoose";
 
-const addCartToDatabase = asyncHandler(async (req, res) => {
+const addCartToDatabase = asyncHandler(async (_, res) => {
   try {
     let token;
-    subscribeToQueue("addToCart", async (data) => {
+    subscribeToQueue("addToCart", async (data, channel, msg) => {
       try {
         const cartDataFromUser = JSON.parse(data);
 
@@ -17,34 +18,32 @@ const addCartToDatabase = asyncHandler(async (req, res) => {
           throw new Error("Invalid message structure received from queue.");
         }
 
-        const { userId, cartData } = cartDataFromUser;
-
+        const userId = cartDataFromUser.userId;
+        const { name, price } = cartDataFromUser.cartData;
         console.log("Received cart data:", cartDataFromUser);
 
-        let userCart = await Cart.findOne({ user_id: userId });
+        const newCart = new Cart({
+          user_id: userId,
+          productName: name,
+          price: price,
+        });
 
-        if (userCart) {
-          userCart.cartData.push(cartData);
-          await userCart.save();
-          console.log("Cart data updated successfully for existing user.");
-        } else {
-          const newCart = new Cart({
-            user_id: userId,
-            cartData: cartData,
-          });
-          await newCart.save();
-          token = await newCart.generateToken();
-          newCart.token = token;
-          const options = {
-            httpOnly: true,
-            secure: true,
-          };
-          newCart.save({ validateBeforeSave: false });
-          console.log("Cart data saved to database successfully for new user.");
-          return res.status(200).cookie("token", token, options).json({
-            message: "Cart data updated successfully for existing user.",
-          });
-        }
+        await newCart.save();
+        token = await newCart.generateToken();
+        newCart.token = token;
+
+        const options = {
+          httpOnly: true,
+          secure: true,
+        };
+
+        await newCart.save({ validateBeforeSave: false });
+
+        channel.ack(msg);
+
+        return res.status(200).cookie("token", token, options).json({
+          message: "Cart data uploaded to cart.",
+        });
       } catch (error) {
         console.error("Error processing message from queue:", error.message);
       }
@@ -79,4 +78,33 @@ const deleteFromCart = asyncHandler(async (req, res) => {
   res.status(200).json({ message: "Item deleted successfully from the cart." });
 });
 
-export { addCartToDatabase, deleteFromCart };
+const makePaymentOfCart = asyncHandler(async (req, res) => {
+  const userId = req.item.user_id;
+  console.log("User ID:", userId);
+
+  const totalAmountResult = await Cart.aggregate([
+    {
+      $match: { user_id: new mongoose.Types.ObjectId(userId) },
+    },
+    {
+      $group: {
+        _id: "$user_id",
+        totalAmount: { $sum: "$price" },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        totalAmount: 1,
+      },
+    },
+  ]);
+
+  const totalAmount = totalAmountResult[0]?.totalAmount || 0;
+
+  console.log("Total Amount:", totalAmount);
+
+  res.json({ totalAmount });
+});
+
+export { addCartToDatabase, deleteFromCart, makePaymentOfCart };
