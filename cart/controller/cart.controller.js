@@ -1,15 +1,17 @@
 import { subscribeToQueue } from "../../user/service/RabbitMQ.js";
 import { Cart } from "../model/cart.model.js";
+import { publishToQueue } from "../service/RabbitMQ.js";
 import { asyncHandler } from "../utility/asyncHandler.js";
 import mongoose from "mongoose";
 
 const addCartToDatabase = asyncHandler(async (req, res) => {
   try {
-    res.status(200).json({ message: "Processing cart data. Check logs for progress." });
+    res
+      .status(200)
+      .json({ message: "Processing cart data. Check logs for progress." });
 
     subscribeToQueue("addToCart", async (data) => {
       try {
-
         const cartDataFromUser = JSON.parse(data);
 
         if (
@@ -31,7 +33,6 @@ const addCartToDatabase = asyncHandler(async (req, res) => {
         });
 
         await newCart.save();
-        
       } catch (error) {
         console.error("Error processing message from queue:", error.message);
       }
@@ -40,7 +41,6 @@ const addCartToDatabase = asyncHandler(async (req, res) => {
     console.error("Error saving cart data to database:", error.message);
   }
 });
-
 
 const deleteFromCart = asyncHandler(async (req, res) => {
   const userCart = await Cart.findByIdAndDelete(req.params.id);
@@ -54,31 +54,46 @@ const deleteFromCart = asyncHandler(async (req, res) => {
 
 const makePaymentOfCart = asyncHandler(async (req, res) => {
   const userId = req.params.id;
-  console.log("User ID:", userId);
 
   const totalAmountResult = await Cart.aggregate([
     {
       $match: { user_id: new mongoose.Types.ObjectId(userId) },
     },
     {
-      $group: {
-        _id: "$user_id",
-        totalAmount: { $sum: "$price" },
-      },
-    },
-    {
-      $project: {
-        _id: 0,
-        totalAmount: 1,
+      $facet: {
+        totalAmountCalculation: [
+          {
+            $group: {
+              _id: "$user_id",
+              totalAmount: { $sum: "$price" },
+            },
+          },
+        ],
+        productQuantityCalculation: [
+          {
+            $group: {
+              _id: "$productName",
+              quantity: { $sum: 1 },
+              Amount: { $first: "$price" },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              productName: "$_id",
+              quantity: 1,
+              totalAmount: 1,
+              Amount: 1,
+            },
+          },
+        ],
       },
     },
   ]);
 
-  const totalAmount = totalAmountResult[0]?.totalAmount || 0;
-
-  console.log("Total Amount:", totalAmount);
-
-  res.json({ totalAmount });
+  const totalAmountData = totalAmountResult[0];
+  publishToQueue("cartPayment", JSON.stringify(totalAmountData));
+  res.send({ totalAmountData });
 });
 
 export { addCartToDatabase, deleteFromCart, makePaymentOfCart };

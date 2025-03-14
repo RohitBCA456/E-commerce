@@ -1,31 +1,55 @@
+import { Payment } from "../model/payment.model.js";
 import { asyncHandler } from "../utility/asyncHandler.js";
-import Payment from "../models/payment.model.js";
-import { processPayment } from "../services/paymentService.js";
+import { subscribeToQueue } from "../service/RabbitMQ.js";
 
-const cartPayment = asyncHandler(async(req,res) => {
-          const { userId, cartItems, totalAmount, paymentMethod } = req.body;
+const cartPayment = asyncHandler(async (req, res) => {
+  const { paymentMethod, userId } = req.body;
 
-          const paymentResult = await processPayment({ userId, cartItems, totalAmount, paymentMethod });
+  if (typeof paymentMethod !== 'string') {
+    return res.status(400).json({ message: "Invalid payment method format. It should be a string." });
+  }
 
-          if (!paymentResult.success) {
-                    return res.status(400).json({
-                              success: false,
-                              message: paymentResult.message
-                    });
-          }
+  console.log("Payment method received:", paymentMethod);
 
-          const payment = new Payment({
-                    userId,
-                    cartItems,
-                    totalAmount,
-                    paymentMethod,
-                    status: 'Pending'
-          });
+  let isResponseSent = false;
 
-          await payment.save();
+  subscribeToQueue("cartPayment", async (data) => {
 
-          res.status(201).json({
-                    success: true,
-                    data: payment
-          });
-})
+    try {
+      const Data = JSON.parse(data);
+
+      const totalAmount = Data.totalAmountCalculation[0].totalAmount;
+      const productQuantityCalculation = Data.productQuantityCalculation;
+
+      const cartItems = productQuantityCalculation.map((product) => ({
+        productName: product.productName,
+        quantity: product.quantity,
+        price: product.Amount,
+      }));
+
+      const newPayment = new Payment({
+        userId,
+        cartItems,
+        totalAmount,
+        paymentStatus: "Pending",
+        paymentMethod
+      });
+
+      await newPayment.save();
+      console.log("Payment successfully saved to the database.");
+
+      if (!isResponseSent) {
+        isResponseSent = true;
+        return res.status(200).json({ message: "Payment processing completed successfully." });
+      }
+    } catch (error) {
+      console.error("Error parsing data from RabbitMQ or saving to DB:", error.message);
+      if (!isResponseSent) {
+        isResponseSent = true;
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
+    }
+  });
+});
+
+export { cartPayment };

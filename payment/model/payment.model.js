@@ -4,15 +4,13 @@ const Schema = mongoose.Schema;
 
 const PaymentSchema = new Schema({
           userId: {
-                    type: Schema.Types.ObjectId,
-                    ref: 'User',
+                    type: String,
                     required: true
           },
           cartItems: [
                     {
-                              productId: {
-                                        type: Schema.Types.ObjectId,
-                                        ref: 'cartData',
+                              productName: {
+                                        type: String,
                                         required: true
                               },
                               quantity: {
