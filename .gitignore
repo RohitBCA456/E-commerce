@@ -5,3 +5,5 @@ gateway/node_modules/
 user/node_modules/
 cart/.env
 gateway/.env
+payment/.env
+payment/node_modules/
