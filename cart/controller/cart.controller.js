@@ -3,11 +3,13 @@ import { Cart } from "../model/cart.model.js";
 import { asyncHandler } from "../utility/asyncHandler.js";
 import mongoose from "mongoose";
 
-const addCartToDatabase = asyncHandler(async (_, res) => {
+const addCartToDatabase = asyncHandler(async (req, res) => {
   try {
-    let token;
-    subscribeToQueue("addToCart", async (data, channel, msg) => {
+    res.status(200).json({ message: "Processing cart data. Check logs for progress." });
+
+    subscribeToQueue("addToCart", async (data) => {
       try {
+
         const cartDataFromUser = JSON.parse(data);
 
         if (
@@ -29,21 +31,7 @@ const addCartToDatabase = asyncHandler(async (_, res) => {
         });
 
         await newCart.save();
-        token = await newCart.generateToken();
-        newCart.token = token;
-
-        const options = {
-          httpOnly: true,
-          secure: true,
-        };
-
-        await newCart.save({ validateBeforeSave: false });
-
-        channel.ack(msg);
-
-        return res.status(200).cookie("token", token, options).json({
-          message: "Cart data uploaded to cart.",
-        });
+        
       } catch (error) {
         console.error("Error processing message from queue:", error.message);
       }
@@ -53,8 +41,9 @@ const addCartToDatabase = asyncHandler(async (_, res) => {
   }
 });
 
+
 const deleteFromCart = asyncHandler(async (req, res) => {
-  const userCart = await Cart.findByIdAndDelete(req.item._id);
+  const userCart = await Cart.findByIdAndDelete(req.params.id);
   if (!userCart) {
     return res.status(404).json({ message: "Item not found" });
   }
@@ -64,7 +53,7 @@ const deleteFromCart = asyncHandler(async (req, res) => {
 });
 
 const makePaymentOfCart = asyncHandler(async (req, res) => {
-  const userId = req.item.user_id;
+  const userId = req.params.id;
   console.log("User ID:", userId);
 
   const totalAmountResult = await Cart.aggregate([

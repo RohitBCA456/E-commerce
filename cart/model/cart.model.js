@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import JWT from "jsonwebtoken";
 
 const cartSchema = new mongoose.Schema(
   {
@@ -25,17 +24,6 @@ const cartSchema = new mongoose.Schema(
   }
 );
 
-cartSchema.methods.generateToken = async function () {
-  return JWT.sign(
-    {
-      _id: this._id,
-    },
-    process.env.JWT_SECRET,
-    {
-      expiresIn: "1d",
-    }
-  );
-};
 
 const Cart = mongoose.model("Cart", cartSchema);
 
