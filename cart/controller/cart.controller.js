@@ -10,7 +10,7 @@ const addCartToDatabase = asyncHandler(async (req, res) => {
       .status(200)
       .json({ message: "Processing cart data. Check logs for progress." });
 
-    subscribeToQueue("addToCart", async (data) => {
+    subscribeToQueue("addToCart", async (data, msg) => {
       try {
         const cartDataFromUser = JSON.parse(data);
 
@@ -33,6 +33,7 @@ const addCartToDatabase = asyncHandler(async (req, res) => {
         });
 
         await newCart.save();
+        msg.ack();
       } catch (error) {
         console.error("Error processing message from queue:", error.message);
       }

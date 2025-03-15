@@ -16,7 +16,7 @@ const cartPayment = asyncHandler(async (req, res) => {
 
   console.log("Payment method received:", paymentMethod);
 
-  subscribeToQueue("cartPayment", async (data) => {
+  subscribeToQueue("cartPayment", async (data, ack) => {
     try {
       const Data = JSON.parse(data);
 
@@ -59,6 +59,8 @@ const cartPayment = asyncHandler(async (req, res) => {
 
         await newPayment.save();
         console.log("Payment successfully saved to the database.");
+
+        ack();
 
         if (!res.headersSent) {
           return res.status(200).json({
