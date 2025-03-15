@@ -34,7 +34,7 @@ const PaymentSchema = new Schema({
           },
           paymentMethod: {
                     type: String,
-                    enum: ['Credit Card', 'Debit Card', 'PayPal', 'Cash on Delivery'],
+                    enum: ['card', 'Debit Card', 'PayPal', 'Cash on Delivery'],
                     required: true
           },
           createdAt: {
