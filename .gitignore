@@ -3,7 +3,7 @@ server.cert
 server.key
 gateway/node_modules/
 user/node_modules/
+payment/node_modules/
 cart/.env
 gateway/.env
 payment/.env
-payment/node_modules/
