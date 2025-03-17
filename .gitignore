@@ -7,3 +7,5 @@ payment/node_modules/
 cart/.env
 gateway/.env
 payment/.env
+order/.env
+order/node_modules/

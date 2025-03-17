@@ -122,4 +122,14 @@ const addToCart = asyncHandler(async (req, res) => {
   return res.status(200).json({ message: "Added to cart successfully." });
 });
 
-export { registerUser, loginUser, logoutUser, addToCart, changePassword };
+const addressDetails = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { $set: { shippingAddress: req.body } },
+    { new: true }
+  );
+  return res.status(200).json({message: "Address updated successfully."});
+});
+
+export { registerUser, loginUser, logoutUser, addToCart, changePassword, addressDetails };

@@ -1,5 +1,6 @@
 import { app } from "./app.js";
-import connectDB from "./db/database.js";
+import { connectDB } from "./db/database.js";
+
 connectDB()
   .then(() => {
     app.on("error", (err) => console.log(err));
