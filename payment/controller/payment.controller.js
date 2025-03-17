@@ -3,11 +3,10 @@ import { Payment } from "../model/payment.model.js";
 import { asyncHandler } from "../utility/asyncHandler.js";
 import { subscribeToQueue } from "../service/RabbitMQ.js";
 
-
 const cartPayment = asyncHandler(async (req, res) => {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
   const { paymentMethod, userId } = req.body;
-
+  let paymentStatus;
   if (typeof paymentMethod !== "string") {
     return res.status(400).json({
       message: "Invalid payment method format. It should be a string.",
@@ -36,13 +35,15 @@ const cartPayment = asyncHandler(async (req, res) => {
         currency: "inr",
         payment_method_types: [paymentMethod],
       });
-
+      if (paymentMethod !== "Cash on Delivery") {
+        paymentStatus = "completed";
+      }
       console.log("Payment Intent Created:", paymentIntent);
 
       const paymentConfirmation = await stripe.paymentIntents.confirm(
         paymentIntent.id,
         {
-          payment_method: 'pm_card_visa',
+          payment_method: "pm_card_visa",
         }
       );
 
@@ -53,7 +54,7 @@ const cartPayment = asyncHandler(async (req, res) => {
           userId,
           cartItems,
           totalAmount: totalAmount / 100,
-          paymentStatus: "Completed",
+          paymentStatus: paymentStatus || "Pending",
           paymentMethod,
         });
 
@@ -69,12 +70,14 @@ const cartPayment = asyncHandler(async (req, res) => {
           });
         }
       } else {
-        console.error("Payment processing failed: Payment confirmation failed.");
+        console.error(
+          "Payment processing failed: Payment confirmation failed."
+        );
 
         if (!res.headersSent) {
           return res.status(400).json({
             message: "Payment failed",
-            error: "Payment confirmation failed."
+            error: "Payment confirmation failed.",
           });
         }
       }
