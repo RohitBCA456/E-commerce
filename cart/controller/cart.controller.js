@@ -55,7 +55,11 @@ const deleteFromCart = asyncHandler(async (req, res) => {
 
 const makePaymentOfCart = asyncHandler(async (req, res) => {
   const userId = req.params.id;
-
+  const user = await Cart.findByIdAndUpdate(
+    userId,
+    { $set: { shippingAddress: req.body } },
+    { new: true }
+  );
   const totalAmountResult = await Cart.aggregate([
     {
       $match: { user_id: new mongoose.Types.ObjectId(userId) },
@@ -92,8 +96,11 @@ const makePaymentOfCart = asyncHandler(async (req, res) => {
     },
   ]);
 
-  const totalAmountData = totalAmountResult[0];
-  publishToQueue("cartPayment", JSON.stringify(totalAmountData));
+  const productData = {
+    totalAmount: totalAmountResult[0],
+    user: userId,
+  }
+  publishToQueue("cartPayment", JSON.stringify(productData));
   res.send({ totalAmountData });
 });
 

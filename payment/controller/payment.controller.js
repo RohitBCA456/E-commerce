@@ -19,8 +19,8 @@ const cartPayment = asyncHandler(async (req, res) => {
     try {
       const Data = JSON.parse(data);
 
-      const totalAmount = Data.totalAmountCalculation[0].totalAmount * 100;
-      const productQuantityCalculation = Data.productQuantityCalculation;
+      const totalAmount = Data.totalAmount.totalAmountCalculation[0].totalAmount * 100;
+      const productQuantityCalculation = Data.totalAmount.productQuantityCalculation;
 
       const cartItems = productQuantityCalculation.map((product) => ({
         productName: product.productName,

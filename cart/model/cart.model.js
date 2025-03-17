@@ -18,12 +18,17 @@ const cartSchema = new mongoose.Schema(
     token: {
       type: String,
     },
+    shippingAddress: {
+      address: { type: String, required: true },
+      city: { type: String, required: true },
+      postalCode: { type: String, required: true },
+      country: { type: String, required: true },
+    },
   },
   {
     timestamps: true,
   }
 );
-
 
 const Cart = mongoose.model("Cart", cartSchema);
 
