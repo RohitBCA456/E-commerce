@@ -43,7 +43,10 @@ const addCartToDatabase = asyncHandler(async (req, res) => {
 });
 
 const deleteFromCart = asyncHandler(async (req, res) => {
-  const userCart = await Cart.findByIdAndDelete(req.params.id);
+  const cartId = req.params.id;
+
+  const userCart = await Cart.findByIdAndDelete(cartId);
+
   if (!userCart) {
     return res.status(404).json({ message: "Item not found" });
   }
@@ -97,4 +100,13 @@ const makePaymentOfCart = asyncHandler(async (req, res) => {
   res.send({ productData });
 });
 
-export { addCartToDatabase, deleteFromCart, makePaymentOfCart };
+const deleteCart = asyncHandler(async (req, res) => {
+  const userId = req.params.id;
+  const deletedCart = await Cart.deleteMany({ user_id: userId });
+  if (deletedCart.deletedCount === 0) {
+    return res.status(404).json({ message: "Cart not found" });
+  }
+  return res.status(200).json({ message: "Cart deleted successfully." });
+});
+
+export { addCartToDatabase, deleteFromCart, makePaymentOfCart, deleteCart };

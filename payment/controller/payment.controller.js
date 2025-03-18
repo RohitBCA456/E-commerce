@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { Payment } from "../model/payment.model.js";
 import { asyncHandler } from "../utility/asyncHandler.js";
-import { subscribeToQueue } from "../service/RabbitMQ.js";
+import { publishToQueue, subscribeToQueue } from "../service/RabbitMQ.js";
 
 const cartPayment = asyncHandler(async (req, res) => {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -88,4 +88,14 @@ const cartPayment = asyncHandler(async (req, res) => {
   });
 });
 
-export { cartPayment };
+const orderDetails = asyncHandler(async (req,res) => {
+  const userId = req.params.id;
+  const products = await Payment.findOne({ userId });
+  if (!products) {
+    return res.status(404).json({ message: "No payments found." });
+  }
+  publishToQueue("orderDetails", JSON.stringify(products));
+  return res.status(200).json({ message: "Order details fetched successfully." });
+})
+
+export { cartPayment, orderDetails };
