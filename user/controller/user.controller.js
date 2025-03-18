@@ -4,10 +4,11 @@ import { asyncHandler } from "../utility/asyncHandler.js";
 
 const registerUser = asyncHandler(async (req, res) => {
   try {
-    const { name, email, phoneNumber, address, password } = req.body;
+    const { name, email, password, phoneNumber, shippingAddress } = req.body;
+    console.log(req.body);
     if (
-      [name, email, phoneNumber, password].some(
-        (fields) => fields.trim() === ""
+      [name, email, password, phoneNumber].some(
+        (fields) => fields.trim() === ""  
       )
     ) {
       return res.status(404).json({ messge: "Missing credentials" });
@@ -26,7 +27,7 @@ const registerUser = asyncHandler(async (req, res) => {
       email: email,
       password: password,
       phoneNumber: phoneNumber,
-      address: address,
+      shippingAddress: shippingAddress,
     });
     await user_data.save();
     return res.status(200).json({ message: "user registered successfully." });

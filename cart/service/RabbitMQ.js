@@ -18,7 +18,6 @@ async function connect() {
     connection.on("error", (err) => {
       console.error("RabbitMQ connection error:", err.message);
     });
-
   } catch (error) {
     console.error("Failed to connect to RabbitMQ", error);
     setTimeout(connect, 5000);
@@ -34,7 +33,9 @@ async function subscribeToQueue(queue, callback) {
   channel.consume(queue, async (msg) => {
     if (msg !== null) {
       try {
-        await callback(msg.content.toString(), channel, msg);
+        await callback(msg.content.toString());
+        channel.ack(msg);
+        console.log("Message acknowledged successfully.");
       } catch (error) {
         console.error("Error processing message:", error.message);
       }

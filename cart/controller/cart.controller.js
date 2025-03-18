@@ -33,7 +33,6 @@ const addCartToDatabase = asyncHandler(async (req, res) => {
         });
 
         await newCart.save();
-        msg.ack();
       } catch (error) {
         console.error("Error processing message from queue:", error.message);
       }
@@ -55,11 +54,6 @@ const deleteFromCart = asyncHandler(async (req, res) => {
 
 const makePaymentOfCart = asyncHandler(async (req, res) => {
   const userId = req.params.id;
-  const user = await Cart.findByIdAndUpdate(
-    userId,
-    { $set: { shippingAddress: req.body } },
-    { new: true }
-  );
   const totalAmountResult = await Cart.aggregate([
     {
       $match: { user_id: new mongoose.Types.ObjectId(userId) },
@@ -98,10 +92,9 @@ const makePaymentOfCart = asyncHandler(async (req, res) => {
 
   const productData = {
     totalAmount: totalAmountResult[0],
-    user: userId,
-  }
+  };
   publishToQueue("cartPayment", JSON.stringify(productData));
-  res.send({ totalAmountData });
+  res.send({ productData });
 });
 
 export { addCartToDatabase, deleteFromCart, makePaymentOfCart };

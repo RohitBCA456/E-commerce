@@ -4,7 +4,7 @@ import Order from "../model/order.model.js";
 
 const orderProduct = asyncHandler(async (req, res) => {
   try {
-    subscribeToQueue("cartPayment", async (data) => {
+    subscribeToQueue("cartPayment", async (data, ack) => {
       const Data = JSON.parse(data);
 
       const totalAmount =
@@ -25,10 +25,11 @@ const orderProduct = asyncHandler(async (req, res) => {
         paymentMethod: payment_method,
       });
       await order.save();
+      ack();
       res.status(200).json({ message: "Order placed successfully" });
     });
   } catch (error) {
-    console.log("Error occured while placing order.", error);
+    console.log("Error occurred while placing order.", error);
     return res.status(500).json({ message: "Order placement failed." });
   }
 });

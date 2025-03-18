@@ -36,7 +36,7 @@ const cartPayment = asyncHandler(async (req, res) => {
         payment_method_types: [paymentMethod],
       });
       if (paymentMethod !== "Cash on Delivery") {
-        paymentStatus = "completed";
+        paymentStatus = "Completed";
       }
       console.log("Payment Intent Created:", paymentIntent);
 
@@ -60,8 +60,6 @@ const cartPayment = asyncHandler(async (req, res) => {
 
         await newPayment.save();
         console.log("Payment successfully saved to the database.");
-
-        ack();
 
         if (!res.headersSent) {
           return res.status(200).json({
