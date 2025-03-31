@@ -4,10 +4,10 @@ import { asyncHandler } from "../utility/asyncHandler.js";
 
 const registerUser = asyncHandler(async (req, res) => {
   try {
-    const { name, email, password, phoneNumber, shippingAddress } = req.body;
+    const { username, email, password } = req.body;
     console.log(req.body);
     if (
-      [name, email, password, phoneNumber].some(
+      [username, email, password].some(
         (fields) => fields.trim() === ""  
       )
     ) {
@@ -23,11 +23,9 @@ const registerUser = asyncHandler(async (req, res) => {
         .json({ message: "user already exists with this email" });
     }
     const user_data = new User({
-      name: name,
+      username: username,
       email: email,
       password: password,
-      phoneNumber: phoneNumber,
-      shippingAddress: shippingAddress,
     });
     await user_data.save();
     return res.status(200).json({ message: "user registered successfully." });

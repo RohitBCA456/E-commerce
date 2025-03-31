@@ -4,7 +4,7 @@ import JWT from "jsonwebtoken";
 
 const userSchema = new Schema(
   {
-    name: {
+    username: {
       type: String,
       required: true,
     },
@@ -17,16 +17,11 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
-    phoneNumber: {
-      type: String,
-      required: true,
-      unique: true,
-    },
     shippingAddress: {
-      address: { type: String, required: true },
-      city: { type: String, required: true },
-      postalCode: { type: String, required: true },
-      country: { type: String, required: true },
+      address: { type: String},
+      city: { type: String},
+      postalCode: { type: String},
+      country: { type: String},
     },
     token: {
       type: String,
