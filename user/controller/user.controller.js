@@ -5,11 +5,7 @@ import { asyncHandler } from "../utility/asyncHandler.js";
 const registerUser = asyncHandler(async (req, res) => {
   try {
     const { username, email, password } = req.body;
-    if (
-      [username, email, password].some(
-        (fields) => fields.trim() === ""  
-      )
-    ) {
+    if ([username, email, password].some((fields) => fields.trim() === "")) {
       return res.status(404).json({ messge: "Missing credentials" });
     }
     if (!email.includes("@")) {
@@ -54,6 +50,8 @@ const loginUser = asyncHandler(async (req, res) => {
     const options = {
       httpOnly: true,
       secure: true,
+      sameSite: "None",
+      path: "/",
     };
     return res
       .status(200)
@@ -77,6 +75,8 @@ const logoutUser = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: true,
+    sameSite: "None",
+    path: "/",
   };
   return res
     .status(200)
@@ -117,7 +117,15 @@ const addToCart = asyncHandler(async (req, res) => {
   };
 
   publishToQueue("addToCart", JSON.stringify(message));
-  return res.status(200).json({ message: "Added to cart successfully." });
+  return res.status(200).json({
+    message: "Added to cart successfully.",
+    Id: userId,
+  });
+});
+
+const getUserId = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  return res.status(200).json({ Id: userId });
 });
 
 export {
@@ -126,4 +134,5 @@ export {
   logoutUser,
   addToCart,
   changePassword,
+  getUserId,
 };

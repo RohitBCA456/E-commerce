@@ -3,6 +3,7 @@ import {
   addCartToDatabase,
   deleteCart,
   deleteFromCart,
+  getCartItems,
   makePaymentOfCart,
 } from "../controller/cart.controller.js";
 
@@ -12,5 +13,6 @@ router.route("/add-to-database").get(addCartToDatabase);
 router.route("/delete/:id").post(deleteFromCart);
 router.route("/make-payement-cart/:id").get(makePaymentOfCart);
 router.route("/delete-cart/:id").get(deleteCart);
+router.route("/get-cart-item").get(getCartItems);
 
 export default router;

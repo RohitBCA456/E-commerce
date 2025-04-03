@@ -2,7 +2,6 @@ import { User } from "../model/user.model.js";
 import { asyncHandler } from "../utility/asyncHandler.js";
 import JWT from "jsonwebtoken";
 const authMiddleware = asyncHandler(async (req, res, next) => {
-  console.log(req.cookies.token || req.header("Authorization").replace("Bearer", ""))
   const token =
     req.cookies.token || req.header("Authorization").replace("Bearer", "");
   if (!token) {

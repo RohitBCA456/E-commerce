@@ -23,12 +23,12 @@ const addCartToDatabase = asyncHandler(async (req, res) => {
         }
 
         const userId = cartDataFromUser.userId;
-        const { name, price } = cartDataFromUser.cartData;
+        const { title, price } = cartDataFromUser.cartData;
         console.log("Received cart data:", cartDataFromUser);
 
         const newCart = new Cart({
           user_id: userId,
-          productName: name,
+          productName: title,
           price: price,
         });
 
@@ -53,6 +53,18 @@ const deleteFromCart = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json({ message: "Item deleted successfully from the cart." });
+});
+
+const getCartItems = asyncHandler(async (req, res) => {
+  const userId = req.params.id;
+
+  const cartItems = await Cart.find({ user_id: userId });
+
+  if (!cartItems || cartItems.length === 0) {
+    return res.status(404).json({ message: "No items found in the cart." });
+  }
+
+  return res.status(200).json({ cartItems });
 });
 
 const makePaymentOfCart = asyncHandler(async (req, res) => {
@@ -109,4 +121,4 @@ const deleteCart = asyncHandler(async (req, res) => {
   return res.status(200).json({ message: "Cart deleted successfully." });
 });
 
-export { addCartToDatabase, deleteFromCart, makePaymentOfCart, deleteCart };
+export { addCartToDatabase, deleteFromCart, makePaymentOfCart, deleteCart, getCartItems };
