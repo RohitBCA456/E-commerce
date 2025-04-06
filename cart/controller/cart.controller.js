@@ -46,7 +46,9 @@ const addCartToDatabase = asyncHandler(async (req, res) => {
 
 const deleteFromCart = asyncHandler(async (req, res) => {
   const cartId = req.params.id;
-
+  if (!cartId) {
+    return res.status(400).json({ message: "Cart ID is required." });
+  }
   const userCart = await Cart.findByIdAndDelete(cartId);
 
   if (!userCart) {
