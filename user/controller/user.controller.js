@@ -85,15 +85,15 @@ const logoutUser = asyncHandler(async (req, res) => {
 });
 
 const changePassword = asyncHandler(async (req, res) => {
-  const { oldPassword, newPassword } = req.body;
-  if ([oldPassword, newPassword].some((field) => field.trim() === "")) {
+  const { currentPassword, newPassword } = req.body;
+  if ([currentPassword, newPassword].some((field) => field.trim() === "")) {
     return res.status(400).json({ message: "Invalid credentials" });
   }
   const user = await User.findById(req.user._id);
   if (!user) {
     return res.status(404).json({ message: "No user found" });
   }
-  const isPasswordValid = await user.isPasswordCorrect(oldPassword);
+  const isPasswordValid = await user.isPasswordCorrect(currentPassword);
   if (!isPasswordValid) {
     return res.status(400).json({ message: "Invalid password" });
   }
