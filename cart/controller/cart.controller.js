@@ -23,13 +23,15 @@ const addCartToDatabase = asyncHandler(async (req, res) => {
         }
 
         const userId = cartDataFromUser.userId;
-        const { title, price } = cartDataFromUser.cartData;
+        const { title, price, image, text } = cartDataFromUser.cartData;
         console.log("Received cart data:", cartDataFromUser);
 
         const newCart = new Cart({
           user_id: userId,
           productName: title,
           price: price,
+          image: image,
+          text: text,
         });
 
         await newCart.save();
@@ -56,7 +58,7 @@ const deleteFromCart = asyncHandler(async (req, res) => {
 });
 
 const getCartItems = asyncHandler(async (req, res) => {
-  const userId = req.params.id;
+  const userId = req.params.Id;
 
   const cartItems = await Cart.find({ user_id: userId });
 
@@ -64,11 +66,11 @@ const getCartItems = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: "No items found in the cart." });
   }
 
-  return res.status(200).json({ cartItems });
+  return res.status(200).json({ cartItems, length: cartItems.length });
 });
 
 const makePaymentOfCart = asyncHandler(async (req, res) => {
-  const userId = req.params.id;
+  const userId = req.params.Id;
   const totalAmountResult = await Cart.aggregate([
     {
       $match: { user_id: new mongoose.Types.ObjectId(userId) },
@@ -121,4 +123,10 @@ const deleteCart = asyncHandler(async (req, res) => {
   return res.status(200).json({ message: "Cart deleted successfully." });
 });
 
-export { addCartToDatabase, deleteFromCart, makePaymentOfCart, deleteCart, getCartItems };
+export {
+  addCartToDatabase,
+  deleteFromCart,
+  makePaymentOfCart,
+  deleteCart,
+  getCartItems,
+};
