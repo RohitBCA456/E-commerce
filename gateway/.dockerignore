@@ -1,0 +1,25 @@
+# Ignore node_modules (reinstall inside the container)
+node_modules
+
+# Ignore logs
+*.log
+
+# Ignore temporary files
+*.tmp
+*.bak
+*.swp
+
+# Ignore local environment files
+.env
+
+# Ignore Docker-related files
+Dockerfile
+.dockerignore
+
+# Ignore build-related files
+dist
+build
+
+# Ignore version control files
+.git
+.gitignore

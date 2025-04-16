@@ -1,7 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import paymentRouter from "./router/payment.router.js";
-import { connect } from "../user/service/RabbitMQ.js";
+import { connect } from "./service/RabbitMQ.js";
 
 dotenv.config({ path: "./.env" });
 const app = express();

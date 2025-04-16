@@ -1,4 +1,4 @@
-import { subscribeToQueue } from "../../user/service/RabbitMQ.js";
+import { subscribeToQueue } from "../service/RabbitMQ.js";
 import { Cart } from "../model/cart.model.js";
 import { publishToQueue } from "../service/RabbitMQ.js";
 import { asyncHandler } from "../utility/asyncHandler.js";
