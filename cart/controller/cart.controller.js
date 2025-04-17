@@ -72,49 +72,60 @@ const getCartItems = asyncHandler(async (req, res) => {
 });
 
 const makePaymentOfCart = asyncHandler(async (req, res) => {
-  const userId = req.params.Id;
-  const totalAmountResult = await Cart.aggregate([
-    {
-      $match: { user_id: new mongoose.Types.ObjectId(userId) },
-    },
-    {
-      $facet: {
-        totalAmountCalculation: [
-          {
-            $group: {
-              _id: "$user_id",
-              totalAmount: { $sum: "$price" },
-            },
-          },
-        ],
-        productQuantityCalculation: [
-          {
-            $group: {
-              _id: "$productName",
-              quantity: { $sum: 1 },
-              Amount: { $first: "$price" },
-            },
-          },
-          {
-            $project: {
-              _id: 0,
-              productName: "$_id",
-              quantity: 1,
-              totalAmount: 1,
-              Amount: 1,
-            },
-          },
-        ],
-      },
-    },
-  ]);
+  const userId = req.params.id;
 
-  const productData = {
-    totalAmount: totalAmountResult[0],
-  };
-  publishToQueue("cartPayment", JSON.stringify(productData));
-  res.send({ productData });
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).json({ message: "Invalid user ID format" });
+  }
+
+  try {
+    const totalAmountResult = await Cart.aggregate([
+      {
+        $match: { user_id: new mongoose.Types.ObjectId(userId) },
+      },
+      {
+        $facet: {
+          totalAmountCalculation: [
+            {
+              $group: {
+                _id: "$user_id",
+                totalAmount: { $sum: "$price" },
+              },
+            },
+          ],
+          productQuantityCalculation: [
+            {
+              $group: {
+                _id: "$productName",
+                quantity: { $sum: 1 },
+                Amount: { $first: "$price" },
+              },
+            },
+            {
+              $project: {
+                _id: 0,
+                productName: "$_id",
+                quantity: 1,
+                Amount: 1,
+              },
+            },
+          ],
+        },
+      },
+    ]);
+
+    const productData = {
+      totalAmount: totalAmountResult[0],
+    };
+
+    publishToQueue("cartPayment", JSON.stringify(productData));
+    res.send({ productData });
+  } catch (error) {
+    console.error("Error making payment:", error);
+    res.status(500).json({ message: "Error making payment" });
+  }
 });
+
 
 const deleteCart = asyncHandler(async (req, res) => {
   const userId = req.params.id;
