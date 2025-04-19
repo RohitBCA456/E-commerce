@@ -9,3 +9,4 @@ gateway/.env
 payment/.env
 order/.env
 order/node_modules/
+docker-compose.yml
